@@ -153,10 +153,9 @@ h3{color:var(--ink);font-size:13px;font-weight:600;letter-spacing:.08em;margin:2
   <form id="lf" onsubmit="event.preventDefault();login()" style="background:#fff;border:1px solid var(--line);padding:28px;width:100%;max-width:340px;display:grid;gap:12px">
     <b style="font-size:17px">777 客户后台 · 登录</b>
     <input id="le" type="email" autocomplete="username" placeholder="邮箱" required>
-    <input id="lc" hidden inputmode="numeric" autocomplete="one-time-code" placeholder="邮箱里的验证码">
-    <button id="lb">发送验证码</button>
+    <button>发送登录链接</button>
     <span id="lerr" style="color:var(--bad);font-size:13px"></span>
-    <span class="muted" style="font-size:12px">没有账号请联系管理员开通 · <a href="#" onclick="event.preventDefault();sendCode()" style="color:inherit">重新发送验证码</a></span>
+    <span class="muted" style="font-size:12px">没有账号请联系管理员开通</span>
   </form>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -203,23 +202,18 @@ const sb=supabase.createClient(SB_URL,SB_KEY);
 let D, CUR="main", ME="";
 const save=()=>sb.from("crm").upsert({id:"state",data:D}).then(({error})=>{ if(error) alert("保存失败，请刷新后重试："+error.message); });
 function showLogin(msg){ document.getElementById("login").hidden=false; document.getElementById("lerr").textContent=msg||""; }
-async function sendCode(){
-  const email=val("le"); if(!email) return showLogin("请填邮箱");
-  const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:false}});
-  if(error) return showLogin(/not found|not allowed|Signups/i.test(error.message)?"这个邮箱还没开通，请联系管理员":"发送失败："+error.message);
-  document.getElementById("lc").hidden=false; document.getElementById("lc").focus(); document.getElementById("lb").textContent="登录"; showLogin("验证码已发到邮箱，请查收（也看看垃圾邮件）");
-}
 async function login(){
-  if(document.getElementById("lc").hidden) return sendCode();
-  const {error}=await sb.auth.verifyOtp({email:val("le"),token:val("lc"),type:"email"});
-  if(error) return showLogin("验证码不对或已过期");
-  start();
+  const email=val("le"); if(!email) return showLogin("请填邮箱");
+  const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:false,emailRedirectTo:location.origin+location.pathname}});
+  if(error) return showLogin(/not found|not allowed|Signups/i.test(error.message)?"这个邮箱还没开通，请联系管理员":/rate|seconds/i.test(error.message)?"发送太频繁，请过一会儿再试":"发送失败："+error.message);
+  showLogin("登录链接已发到 "+email+"，请在这台设备上点开邮件里的链接（也看看垃圾邮件）");
 }
 function logout(){ sb.auth.signOut().then(()=>location.reload()); }
 async function start(){
   const {data:u}=await sb.auth.getUser(); ME=u.user?.email||"";
   const {data,error}=await sb.from("crm").select("data").eq("id","state").maybeSingle();
   if(error) return showLogin("读取失败："+error.message);
+  if(location.hash) history.replaceState(null,"",location.pathname);
   D=data?.data||demo();  // 数据库还没数据时先显示示例，第一次保存后变成正式数据
   document.getElementById("login").hidden=true;
   tab(CUR);
