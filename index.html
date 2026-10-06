@@ -140,7 +140,7 @@ h3{color:var(--ink);font-size:13px;font-weight:600;letter-spacing:.08em;margin:2
   .qt{font-size:14.5px}
   .faq-tools select,.faq-tools button{flex:1}
 }
-#login[hidden],#login form[hidden]{display:none!important}
+#login[hidden],#login [hidden]{display:none!important}
 </style>
 </head>
 <body>
@@ -153,16 +153,10 @@ h3{color:var(--ink);font-size:13px;font-weight:600;letter-spacing:.08em;margin:2
   <form id="lf" onsubmit="event.preventDefault();login()" style="background:#fff;border:1px solid var(--line);padding:28px;width:100%;max-width:340px;display:grid;gap:12px">
     <b style="font-size:17px">777 客户后台 · 登录</b>
     <input id="le" type="email" autocomplete="username" placeholder="邮箱" required>
-    <input id="lp" type="password" autocomplete="current-password" placeholder="密码" required>
-    <button>登录</button>
+    <input id="lc" hidden inputmode="numeric" autocomplete="one-time-code" placeholder="邮箱里的验证码">
+    <button id="lb">发送验证码</button>
     <span id="lerr" style="color:var(--bad);font-size:13px"></span>
-    <span class="muted" style="font-size:12px">没有账号请联系管理员开通 · <a href="#" onclick="event.preventDefault();forgot()" style="color:inherit">忘记密码</a></span>
-  </form>
-  <form id="pwf" hidden onsubmit="event.preventDefault();setPw()" style="background:#fff;border:1px solid var(--line);padding:28px;width:100%;max-width:340px;display:grid;gap:12px">
-    <b style="font-size:17px">设置你的登录密码</b>
-    <input id="np" type="password" autocomplete="new-password" minlength="6" placeholder="至少 6 位" required>
-    <button>保存密码并进入</button>
-    <span id="perr" style="color:var(--bad);font-size:13px"></span>
+    <span class="muted" style="font-size:12px">没有账号请联系管理员开通 · <a href="#" onclick="event.preventDefault();sendCode()" style="color:inherit">重新发送验证码</a></span>
   </form>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -205,25 +199,21 @@ function demo(){
 // ---------- 数据：Supabase，全团队共享一份 ----------
 // ponytail: 整份 D 存成一行、后写覆盖先写；多人同一秒改会丢一方，人多了再按客户拆行
 const SB_URL="https://nwdxrppcmhbqfkrondjm.supabase.co", SB_KEY="sb_publishable_RS6TBXVQJECKqu23kIxX_Q_0xt0GvDy";
-const NEWPW=/type=(invite|recovery)/.test(location.hash); // 邀请 / 重设密码邮件点进来，要先设密码
 const sb=supabase.createClient(SB_URL,SB_KEY);
 let D, CUR="main", ME="";
 const save=()=>sb.from("crm").upsert({id:"state",data:D}).then(({error})=>{ if(error) alert("保存失败，请刷新后重试："+error.message); });
 function showLogin(msg){ document.getElementById("login").hidden=false; document.getElementById("lerr").textContent=msg||""; }
+async function sendCode(){
+  const email=val("le"); if(!email) return showLogin("请填邮箱");
+  const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:false}});
+  if(error) return showLogin(/not found|not allowed|Signups/i.test(error.message)?"这个邮箱还没开通，请联系管理员":"发送失败："+error.message);
+  document.getElementById("lc").hidden=false; document.getElementById("lc").focus(); document.getElementById("lb").textContent="登录"; showLogin("验证码已发到邮箱，请查收（也看看垃圾邮件）");
+}
 async function login(){
-  const {error}=await sb.auth.signInWithPassword({email:val("le").trim(),password:val("lp")});
-  if(error) return showLogin("邮箱或密码不对");
+  if(document.getElementById("lc").hidden) return sendCode();
+  const {error}=await sb.auth.verifyOtp({email:val("le"),token:val("lc"),type:"email"});
+  if(error) return showLogin("验证码不对或已过期");
   start();
-}
-async function setPw(){
-  const {error}=await sb.auth.updateUser({password:val("np")});
-  if(error) return document.getElementById("perr").textContent="设置失败："+error.message;
-  history.replaceState(null,"",location.pathname); document.getElementById("login").hidden=true;
-}
-async function forgot(){
-  const e=val("le"); if(!e) return showLogin("先在上面填你的邮箱");
-  const {error}=await sb.auth.resetPasswordForEmail(e,{redirectTo:location.origin+location.pathname});
-  showLogin(error?"发送失败，请稍后再试":"重设密码的邮件已发出，请查收");
 }
 function logout(){ sb.auth.signOut().then(()=>location.reload()); }
 async function start(){
@@ -233,7 +223,6 @@ async function start(){
   D=data?.data||demo();  // 数据库还没数据时先显示示例，第一次保存后变成正式数据
   document.getElementById("login").hidden=true;
   tab(CUR);
-  if(NEWPW){ document.getElementById("lf").hidden=true; document.getElementById("pwf").hidden=false; document.getElementById("login").hidden=false; }
   sb.channel("crm").on("postgres_changes",{event:"*",schema:"public",table:"crm"},p=>{
     if(!p.new?.data) return; D=p.new.data;
     const a=document.activeElement; if(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)) return; // 正在输入就先不刷新
