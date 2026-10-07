@@ -84,6 +84,8 @@ tbody tr:last-child td{border-bottom:0}
 .pcard-reach{color:var(--muted);font-size:14px;margin-top:2px}
 .pcard-grid{display:grid;grid-template-columns:76px 1fr;gap:7px 10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:14.5px}
 .pcard-grid div:nth-child(odd){color:var(--muted)}
+.evnum{width:72px;padding:2px 6px;border-color:transparent;background:transparent;border-bottom:1px dashed var(--gold-d);border-radius:4px}
+.evnum:hover{border-color:var(--line)}
 .pcard-foot{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid var(--line2);font-size:12.5px;color:var(--muted)}
 
 /* 抽屉 */
@@ -369,10 +371,10 @@ function saveNew(){
 function renderEv(){
   document.getElementById("main").innerHTML=`
   <div class="pagehead"><div><h1>活动记录</h1><p>没有值得扫码领取的东西，就不硬留资。活动只记整体数据也完全可以。</p></div></div>
-  <div class="cards">${D.events.map(e=>`<div class="pcard"><div class="pcard-top"><div><div class="pcard-name">${esc(e.name)}</div><div class="pcard-reach">${e.d}</div></div><span class="tag ${e.kind.includes("EB-5")?"EB-5潜客":"社群池"}">${esc(e.kind)}</span></div>
-    <div class="pcard-grid"><div>合作方</div><div>${esc(e.partner)||"—"}</div><div>到场</div><div>${e.att} 人</div><div>进入后台</div><div>${e.leads} 人</div>${e.note?`<div>备注</div><div>${esc(e.note)}</div>`:""}</div></div>`).join("")}</div>
+  <div class="cards">${D.events.map((e,i)=>`<div class="pcard"><div class="pcard-top"><div><div class="pcard-name">${esc(e.name)}</div><div class="pcard-reach">${e.d}</div></div><span class="tag ${e.kind.includes("EB-5")?"EB-5潜客":"社群池"}">${esc(e.kind)}</span></div>
+    <div class="pcard-grid"><div>合作方</div><div>${esc(e.partner)||"—"}</div><div>到场</div><div>${evNum(i,"att")} 人</div><div>进入后台</div><div>${evNum(i,"leads")} 人</div>${e.note?`<div>备注</div><div>${esc(e.note)}</div>`:""}</div></div>`).join("")}</div>
   <div class="wrap desk"><table style="min-width:900px"><thead><tr><th>日期</th><th>活动</th><th>类型</th><th>合作方</th><th>到场</th><th>进入后台</th><th>备注</th></tr></thead><tbody>
-  ${D.events.map(e=>`<tr><td>${e.d}</td><td><b>${esc(e.name)}</b></td><td>${esc(e.kind)}</td><td>${esc(e.partner)||"—"}</td><td>${e.att}</td><td>${e.leads}</td><td style="white-space:normal">${esc(e.note)}</td></tr>`).join("")}
+  ${D.events.map((e,i)=>`<tr><td>${e.d}</td><td><b>${esc(e.name)}</b></td><td>${esc(e.kind)}</td><td>${esc(e.partner)||"—"}</td><td>${evNum(i,"att")}</td><td>${evNum(i,"leads")}</td><td style="white-space:normal">${esc(e.note)}</td></tr>`).join("")}
   </tbody></table></div>
   <h3>新增活动</h3><div class="form" style="max-width:640px">
     <label>日期<input type="date" id="ed"></label><label>活动名称<input id="en"></label>
@@ -380,6 +382,8 @@ function renderEv(){
     <label>到场人数<input type="number" id="ea"></label><label>进入后台人数<input type="number" id="el"></label>
     <label class="full">备注<input id="eo"></label></div><button onclick="addEv()">添加</button>`;
 }
+// 点数字直接改，改完自动保存
+const evNum=(i,k)=>`<input class="evnum" type="number" min="0" inputmode="numeric" value="${D.events[i][k]}" title="点击修改" onchange="D.events[${i}].${k}=+this.value||0; save()">`;
 function addEv(){ D.events.unshift({d:val("ed"),name:val("en"),kind:val("ek"),partner:val("ep"),att:+val("ea")||0,leads:+val("el")||0,note:val("eo")}); save(); renderEv(); }
 
 // ---------- 高频问题：内置问答（写在文件里，发给别人也能看到） ----------
