@@ -176,7 +176,7 @@ h3{color:var(--ink);font-size:13px;font-weight:600;letter-spacing:.08em;margin:2
 // ---------- 规则 ----------
 // 人群：社群池（默认）→ EB-5潜客（出现任一 EB-5 行为）→ 高意向客户（请求咨询 / 进入深度咨询）
 const COMMUNITY_ACTS = ["参加活动","领取资料 / 报名下场"];
-const EB5_ACTS = ["看了身份规划内容","做了EB-5自测","问了EB-5问题"];
+const EB5_ACTS = ["看了身份规划内容","问了EB-5问题"];
 const OPP_ACTS = ["请求咨询"];
 const ACTS = [...COMMUNITY_ACTS, ...EB5_ACTS, ...OPP_ACTS, "跟进沟通"];
 const CHANNELS = ["线下活动","EB-5活动","小红书","公众号","官网","转介绍","其他"];
@@ -195,8 +195,8 @@ function demo(){
     ],
     acts:[
       {p:"P001",d:"2026-10-10",a:"参加活动",x:""},{p:"P001",d:"2026-10-24",a:"领取资料 / 报名下场",x:""},
-      {p:"P002",d:"2026-10-20",a:"参加活动",x:""},{p:"P002",d:"2026-10-20",a:"做了EB-5自测",x:""},
-      {p:"P003",d:"2026-10-21",a:"做了EB-5自测",x:""},
+      {p:"P002",d:"2026-10-20",a:"参加活动",x:""},
+      {p:"P003",d:"2026-10-21",a:"看了身份规划内容",x:""},
       {p:"P004",d:"2026-10-22",a:"问了EB-5问题",x:""},
       {p:"P005",d:"2026-10-20",a:"参加活动",x:""},{p:"P005",d:"2026-10-20",a:"问了EB-5问题",x:""},{p:"P005",d:"2026-10-22",a:"请求咨询",x:""},
       {p:"P006",d:"2026-10-23",a:"问了EB-5问题",x:""},
@@ -311,7 +311,7 @@ function openP(id){
     <label>下一步<input id="un" value="${esc(p.next)}"></label>
     <label>EB-5 关注点<input id="uc" value="${esc(p.concern)}"></label><label>资金来源<input id="uf" value="${esc(p.funds)}"></label></div>
   <button onclick="upd('${id}')">保存</button>
-  <p class="note" style="margin-top:16px">人群自动判断：有任一 EB-5 行为（看了身份规划内容、做了 EB-5 自测、问了 EB-5 问题）就从社群池升级为 EB-5 潜客；请求咨询或进入深度咨询即为高意向客户。不打"高 / 低意向"标签，只记录发生了什么。</p>
+  <p class="note" style="margin-top:16px">人群自动判断：有任一 EB-5 行为（看了身份规划内容、问了 EB-5 问题）就从社群池升级为 EB-5 潜客；请求咨询或进入深度咨询即为高意向客户。不打"高 / 低意向"标签，只记录发生了什么。</p>
   <button class="del" onclick="delP('${id}')">删除此人</button>`);
 }
 function addAct(id){ D.acts.push({p:id,d:val("ad")||today,a:val("aa"),x:val("ax")}); save(); renderMain(); openP(id); }
