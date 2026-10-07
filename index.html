@@ -228,6 +228,7 @@ async function start(){
   if(error) return showLogin("读取失败："+error.message);
   if(location.hash) history.replaceState(null,"",location.pathname);
   D=data?.data||demo();  // 数据库还没数据时先显示示例，第一次保存后变成正式数据
+  const old=D.acts.filter(x=>x.a==="领取资料 / 报名下场"); if(old.length){ old.forEach(x=>x.a="参加EB-5活动"); save(); }  // 旧名称统一改掉
   document.getElementById("login").hidden=true;
   tab(CUR);
   sb.channel("crm").on("postgres_changes",{event:"*",schema:"public",table:"crm"},p=>{
