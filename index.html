@@ -186,12 +186,12 @@ const STAGES = ["社群用户","初次接触","EB-5了解中","深度咨询","�
 function demo(){
   return {
     people:[
-      {id:"P001",name:"A同学",reach:"微信：a_xxx",channel:"线下活动",detail:"新生破冰",contact:"线下",school:"南加州大学",concern:"",funds:"",stage:"社群用户",block:"",next:"邀请 Career 活动",note:""},
-      {id:"P002",name:"B先生",reach:"微信：b_xxx",channel:"EB-5活动",detail:"2026年10月20日 EB-5 投资会",contact:"线下",concern:"资金来源",funds:"父母赠与",stage:"EB-5了解中",block:"不确定父母赠与的钱怎么证明来源",next:"发资金准备清单",note:""},
-      {id:"P003",name:"C女士",reach:"小红书：@c_xxx",channel:"小红书",detail:"资金来源笔记 #12",contact:"线上",concern:"资金来源",funds:"房产出售",stage:"EB-5了解中",block:"下载清单后未再互动",next:"暂无",note:""},
-      {id:"P004",name:"D先生",reach:"小红书：@d_xxx",channel:"小红书",detail:"私信",contact:"线上",concern:"投资金额",funds:"",stage:"初次接触",block:"私信一次后未回复",next:"暂无",note:""},
-      {id:"P006",name:"F女士",reach:"微信：f_xxx",channel:"转介绍",detail:"xxx介绍",contact:"线上",concern:"排期",funds:"",stage:"初次接触",block:"担心排期时间太长",next:"发 EB-5 准备指南",note:""},
-      {id:"P005",name:"E家庭",reach:"电话：xxx-xxx-xxxx",channel:"EB-5活动",detail:"2026年10月20日 EB-5 投资会",contact:"线下",concern:"子女年龄（孩子 19 岁）",funds:"父母赠与",stage:"深度咨询",block:"等律师确认孩子年龄（CSPA）问题",next:"安排律师咨询",note:"孩子 19 岁，主要担心排期"},
+      {id:"P001",name:"A同学",reach:"微信：a_xxx",channel:"线下活动",detail:"新生破冰",school:"南加州大学",concern:"",funds:"",stage:"社群用户",block:"",next:"邀请 Career 活动",note:""},
+      {id:"P002",name:"B先生",reach:"微信：b_xxx",channel:"EB-5活动",detail:"2026年10月20日 EB-5 投资会",concern:"资金来源",funds:"父母赠与",stage:"EB-5了解中",block:"不确定父母赠与的钱怎么证明来源",next:"发资金准备清单",note:""},
+      {id:"P003",name:"C女士",reach:"小红书：@c_xxx",channel:"小红书",detail:"资金来源笔记 #12",concern:"资金来源",funds:"房产出售",stage:"EB-5了解中",block:"下载清单后未再互动",next:"暂无",note:""},
+      {id:"P004",name:"D先生",reach:"小红书：@d_xxx",channel:"小红书",detail:"私信",concern:"投资金额",funds:"",stage:"初次接触",block:"私信一次后未回复",next:"暂无",note:""},
+      {id:"P006",name:"F女士",reach:"微信：f_xxx",channel:"转介绍",detail:"xxx介绍",concern:"排期",funds:"",stage:"初次接触",block:"担心排期时间太长",next:"发 EB-5 准备指南",note:""},
+      {id:"P005",name:"E家庭",reach:"电话：xxx-xxx-xxxx",channel:"EB-5活动",detail:"2026年10月20日 EB-5 投资会",concern:"子女年龄（孩子 19 岁）",funds:"父母赠与",stage:"深度咨询",block:"等律师确认孩子年龄（CSPA）问题",next:"安排律师咨询",note:"孩子 19 岁，主要担心排期"},
     ],
     acts:[
       {p:"P001",d:"2026-10-10",a:"参加活动",x:""},{p:"P001",d:"2026-10-24",a:"领取资料 / 报名下场",x:""},
@@ -295,7 +295,7 @@ function openP(id){
   <h2>${esc(p.name)}</h2>
   <span class="tag ${g}">${g}</span>
   <h3>基本信息</h3>
-  <div class="kv">${f("联系方式",p.reach)}${f("最初来源",src(p))}${f("来源详情",p.detail)}${f("接触方式",p.contact)}${f("学校",p.school)}${f("EB-5 关注点",p.concern)}${f("资金来源",p.funds)}${f("当前阶段",p.stage)}${f("卡点",p.block)}${f("下一步",p.next)}${f("备注",p.note)}</div>
+  <div class="kv">${f("联系方式",p.reach)}${f("最初来源",src(p))}${f("来源详情",p.detail)}${f("学校",p.school)}${f("EB-5 关注点",p.concern)}${f("资金来源",p.funds)}${f("当前阶段",p.stage)}${f("卡点",p.block)}${f("下一步",p.next)}${f("备注",p.note)}</div>
   <h3>互动记录</h3>
   <div class="tl">${actsOf(id).map(a=>`<div class="${EB5_ACTS.includes(a.a)||OPP_ACTS.includes(a.a)?"eb5":""}"><span class="muted">${a.d}</span> <b>${esc(a.a)}</b> ${a.x?`<span class="muted">${esc(a.x)}</span>`:""}</div>`).join("")||`<span class="muted">暂无</span>`}</div>
   <h3>追加一条互动</h3>
@@ -348,12 +348,11 @@ function newPerson(){
     <label>联系方式<input id="nrc" placeholder="微信 / 电话 / 邮箱"></label>
     <label>最初来源<select id="nc">${CHANNELS.map(c=>`<option>${c}</option>`).join("")}</select></label>
     <label>来源详情<input id="nd" placeholder="如：小红书私信 / Career Talk / xxx介绍"></label>
-    <label>接触方式<select id="nt"><option>线下</option><option>线上</option></select></label>
     <label>学校<input id="nsch"></label>
     <label>人群<select id="ngr"><option value="">自动判断</option><option>社群池</option><option>EB-5潜客</option><option>高意向客户</option></select></label>
     <label>当前阶段<select id="ns">${STAGES.map(s=>`<option>${s}</option>`).join("")}</select></label>
     <label class="full">核心诉求 / EB-5 关注点<input id="nk" placeholder="普通活动来的同学可以留空"></label>
-    <label class="full">第一条互动<select id="na">${ACTS.map(a=>`<option>${a}</option>`).join("")}</select></label>
+    <label class="full">第一条互动<select id="na"><option value="">（不记录）</option>${ACTS.map(a=>`<option>${a}</option>`).join("")}</select></label>
     <label class="full">备注（可不填）<input id="nx"></label>
     <label>是否咨询<select id="ncs"><option value="0">✗ 否</option><option value="1">✓ 是</option></select></label>
     <label class="full">卡点<input id="nb" placeholder="现在卡在哪里？"></label>
@@ -362,8 +361,8 @@ function newPerson(){
 }
 function saveNew(){
   const id="P"+String(Math.max(0,...D.people.map(p=>+p.id.slice(1)))+1).padStart(3,"0");
-  D.people.push({id,name:val("nn")||"未命名",reach:val("nrc"),channel:val("nc"),detail:val("nd"),contact:val("nt"),school:val("nsch"),concern:val("nk"),funds:"",consult:val("ncs")==="1",groupSet:val("ngr"),stage:val("ns"),block:val("nb"),next:val("nnx"),note:""});
-  D.acts.push({p:id,d:today,a:val("na"),x:val("nx")}); save(); closeD(); renderMain(); openP(id);
+  D.people.push({id,name:val("nn")||"未命名",reach:val("nrc"),channel:val("nc"),detail:val("nd"),school:val("nsch"),concern:val("nk"),funds:"",consult:val("ncs")==="1",groupSet:val("ngr"),stage:val("ns"),block:val("nb"),next:val("nnx"),note:""});
+  if(val("na")) D.acts.push({p:id,d:today,a:val("na"),x:val("nx")}); save(); closeD(); renderMain(); openP(id);
 }
 
 // ---------- 活动记录：活动层数据，不要求每个人留资 ----------
