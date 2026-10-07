@@ -84,8 +84,7 @@ tbody tr:last-child td{border-bottom:0}
 .pcard-reach{color:var(--muted);font-size:14px;margin-top:2px}
 .pcard-grid{display:grid;grid-template-columns:76px 1fr;gap:7px 10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:14.5px}
 .pcard-grid div:nth-child(odd){color:var(--muted)}
-.evnum{width:72px;padding:2px 6px;border-color:transparent;background:transparent;border-bottom:1px dashed var(--gold-d);border-radius:4px}
-.evnum:hover{border-color:var(--line)}
+.evnum{width:80px;padding:4px 8px;border-radius:6px}
 .pcard-foot{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid var(--line2);font-size:12.5px;color:var(--muted)}
 
 /* 抽屉 */
@@ -370,7 +369,7 @@ function saveNew(){
 // ---------- 活动记录：活动层数据，不要求每个人留资 ----------
 function renderEv(){
   document.getElementById("main").innerHTML=`
-  <div class="pagehead"><div><h1>活动记录</h1><p>没有值得扫码领取的东西，就不硬留资。活动只记整体数据也完全可以。</p></div></div>
+  <div class="pagehead"><div><h1>活动记录</h1></div></div>
   <div class="cards">${D.events.map((e,i)=>`<div class="pcard"><div class="pcard-top"><div><div class="pcard-name">${esc(e.name)}</div><div class="pcard-reach">${e.d}</div></div><span class="tag ${e.kind.includes("EB-5")?"EB-5潜客":"社群池"}">${esc(e.kind)}</span></div>
     <div class="pcard-grid"><div>合作方</div><div>${esc(e.partner)||"—"}</div><div>到场</div><div>${evNum(i,"att")} 人</div><div>进入后台</div><div>${evNum(i,"leads")} 人</div>${e.note?`<div>备注</div><div>${esc(e.note)}</div>`:""}</div></div>`).join("")}</div>
   <div class="wrap desk"><table style="min-width:900px"><thead><tr><th>日期</th><th>活动</th><th>类型</th><th>合作方</th><th>到场</th><th>进入后台</th><th>备注</th></tr></thead><tbody>
