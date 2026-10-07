@@ -296,7 +296,7 @@ function openP(id){
   <span class="tag ${g}">${g}</span>
   <h3>基本信息</h3>
   <div class="kv">${f("联系方式",p.reach)}${f("最初来源",src(p))}${f("来源详情",p.detail)}${f("接触方式",p.contact)}${f("学校",p.school)}${f("EB-5 关注点",p.concern)}${f("资金来源",p.funds)}${f("当前阶段",p.stage)}${f("卡点",p.block)}${f("下一步",p.next)}${f("备注",p.note)}</div>
-  <h3>互动记录（只记事实）</h3>
+  <h3>互动记录</h3>
   <div class="tl">${actsOf(id).map(a=>`<div class="${EB5_ACTS.includes(a.a)||OPP_ACTS.includes(a.a)?"eb5":""}"><span class="muted">${a.d}</span> <b>${esc(a.a)}</b> ${a.x?`<span class="muted">${esc(a.x)}</span>`:""}</div>`).join("")||`<span class="muted">暂无</span>`}</div>
   <h3>追加一条互动</h3>
   <div class="form"><label>日期<input type="date" id="ad" value="${today}"></label>
