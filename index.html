@@ -175,8 +175,8 @@ h3{color:var(--ink);font-size:13px;font-weight:600;letter-spacing:.08em;margin:2
 <script>
 // ---------- 规则 ----------
 // 人群：社群池（默认）→ EB-5潜客（出现任一 EB-5 行为）→ 高意向客户（请求咨询 / 进入深度咨询）
-const COMMUNITY_ACTS = ["参加活动","领取资料 / 报名下场"];
-const EB5_ACTS = ["看了身份规划内容","问了EB-5问题"];
+const COMMUNITY_ACTS = ["参加活动"];
+const EB5_ACTS = ["参加EB-5活动","问了EB-5问题"];
 const OPP_ACTS = ["请求咨询"];
 const ACTS = [...COMMUNITY_ACTS, ...EB5_ACTS, ...OPP_ACTS, "跟进沟通"];
 const CHANNELS = ["线下活动","EB-5活动","小红书","公众号","官网","转介绍","其他"];
@@ -194,9 +194,9 @@ function demo(){
       {id:"P005",name:"E家庭",reach:"电话：xxx-xxx-xxxx",channel:"EB-5活动",detail:"2026年10月20日 EB-5 投资会",concern:"子女年龄（孩子 19 岁）",funds:"父母赠与",stage:"深度咨询",block:"等律师确认孩子年龄（CSPA）问题",next:"安排律师咨询",note:"孩子 19 岁，主要担心排期"},
     ],
     acts:[
-      {p:"P001",d:"2026-10-10",a:"参加活动",x:""},{p:"P001",d:"2026-10-24",a:"领取资料 / 报名下场",x:""},
+      {p:"P001",d:"2026-10-10",a:"参加活动",x:""},{p:"P001",d:"2026-10-24",a:"跟进沟通",x:""},
       {p:"P002",d:"2026-10-20",a:"参加活动",x:""},
-      {p:"P003",d:"2026-10-21",a:"看了身份规划内容",x:""},
+      {p:"P003",d:"2026-10-21",a:"问了EB-5问题",x:""},
       {p:"P004",d:"2026-10-22",a:"问了EB-5问题",x:""},
       {p:"P005",d:"2026-10-20",a:"参加活动",x:""},{p:"P005",d:"2026-10-20",a:"问了EB-5问题",x:""},{p:"P005",d:"2026-10-22",a:"请求咨询",x:""},
       {p:"P006",d:"2026-10-23",a:"问了EB-5问题",x:""},
@@ -311,7 +311,7 @@ function openP(id){
     <label>下一步<input id="un" value="${esc(p.next)}"></label>
     <label>EB-5 关注点<input id="uc" value="${esc(p.concern)}"></label><label>资金来源<input id="uf" value="${esc(p.funds)}"></label></div>
   <button onclick="upd('${id}')">保存</button>
-  <p class="note" style="margin-top:16px">人群自动判断：有任一 EB-5 行为（看了身份规划内容、问了 EB-5 问题）就从社群池升级为 EB-5 潜客；请求咨询或进入深度咨询即为高意向客户。不打"高 / 低意向"标签，只记录发生了什么。</p>
+  <p class="note" style="margin-top:16px">人群自动判断：有任一 EB-5 行为（参加 EB-5 活动、问了 EB-5 问题）就从社群池升级为 EB-5 潜客；请求咨询或进入深度咨询即为高意向客户。不打"高 / 低意向"标签，只记录发生了什么。</p>
   <button class="del" onclick="delP('${id}')">删除此人</button>`);
 }
 function addAct(id){ D.acts.push({p:id,d:val("ad")||today,a:val("aa"),x:val("ax")}); save(); renderMain(); openP(id); }
@@ -344,7 +344,7 @@ function newPerson(){
   drawer(`<button class="sm ghost" style="float:right" onclick="closeD()">关闭</button><h2>新增人员</h2>
   <p class="muted" style="font-size:12.5px">先搜一下是否已有这个人。已有就在他的记录里追加互动，不要重复新建。</p>
   <div class="form">
-    <label>姓名 / 称呼<input id="nn"></label>
+    <label>姓名 / 称呼 *<input id="nn" required></label>
     <label>联系方式<input id="nrc" placeholder="微信 / 电话 / 邮箱"></label>
     <label>最初来源<select id="nc">${CHANNELS.map(c=>`<option>${c}</option>`).join("")}</select></label>
     <label>来源详情<input id="nd" placeholder="如：小红书私信 / Career Talk / xxx介绍"></label>
@@ -361,7 +361,8 @@ function newPerson(){
 }
 function saveNew(){
   const id="P"+String(Math.max(0,...D.people.map(p=>+p.id.slice(1)))+1).padStart(3,"0");
-  D.people.push({id,name:val("nn")||"未命名",reach:val("nrc"),channel:val("nc"),detail:val("nd"),school:val("nsch"),concern:val("nk"),funds:"",consult:val("ncs")==="1",groupSet:val("ngr"),stage:val("ns"),block:val("nb"),next:val("nnx"),note:""});
+  if(!val("nn")){ const n=document.getElementById("nn"); n.style.borderColor="#c0392b"; n.focus(); return; }
+  D.people.push({id,name:val("nn"),reach:val("nrc"),channel:val("nc"),detail:val("nd"),school:val("nsch"),concern:val("nk"),funds:"",consult:val("ncs")==="1",groupSet:val("ngr"),stage:val("ns"),block:val("nb"),next:val("nnx"),note:""});
   if(val("na")) D.acts.push({p:id,d:today,a:val("na"),x:val("nx")}); save(); closeD(); renderMain(); openP(id);
 }
 
