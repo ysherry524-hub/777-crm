@@ -254,6 +254,7 @@ const last=p=>actsOf(p.id).slice(-1)[0];
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const today=new Date().toISOString().slice(0,10);
 const src=p=>p.channel;
+const reachHtml=p=>esc(p.reach).replace(/ \/ 邮箱：/g,"<br>邮箱：")||"—";  // 邮箱在微信下面另起一行
 const val=id=>(document.getElementById(id)||{}).value?.trim()||"";
 
 // ---------- 主表 ----------
@@ -273,7 +274,7 @@ function renderMain(){
   </tr></thead><tbody>
   ${rows.map((p,i)=>{const l=last(p),g=group(p);return `<tr onclick="openP('${p.id}')">
     <td class="c-no">${i+1}</td><td class="c-name"><b>${esc(p.name)}</b></td>
-    <td class="c-reach">${esc(p.reach)||"—"}</td>
+    <td class="c-reach">${reachHtml(p)}</td>
     <td class="c-grp"><span class="tag ${g}">${g}</span></td>
     <td class="c-ch">${esc(src(p))}</td><td class="c-det">${esc(p.detail)||"—"}</td>
     <td class="c-con">${esc(p.concern)||"—"}</td><td class="c-fund">${esc(p.funds)||"—"}</td>
@@ -281,7 +282,7 @@ function renderMain(){
     <td class="c-stage">${esc(p.stage)}</td><td class="c-block">${esc(p.block)||"—"}</td><td class="c-next">${esc(p.next)||"—"}</td><td class="c-date">${l?l.d:"—"}</td></tr>`}).join("")||`<tr><td colspan="13" class="muted" style="text-align:center;padding:24px">没有记录</td></tr>`}
   </tbody></table></div>
   <div class="cards">${rows.map(p=>{const g=group(p);return `<div class="pcard" onclick="openP('${p.id}')">
-    <div class="pcard-top"><div><div class="pcard-name">${esc(p.name)}</div><div class="pcard-reach">${esc(p.reach)||"—"}</div></div><span class="tag ${g}">${g}</span></div>
+    <div class="pcard-top"><div><div class="pcard-name">${esc(p.name)}</div><div class="pcard-reach">${reachHtml(p)}</div></div><span class="tag ${g}">${g}</span></div>
     <div class="pcard-grid"><div>来源</div><div>${esc(src(p))}${p.detail?` · ${esc(p.detail)}`:""}</div>
       ${p.concern?`<div>关注点</div><div>${esc(p.concern)}</div>`:""}${p.funds?`<div>资金来源</div><div>${esc(p.funds)}</div>`:""}
       <div>阶段</div><div>${esc(p.stage)}</div>${p.block?`<div>卡点</div><div>${esc(p.block)}</div>`:""}${p.next?`<div>下一步</div><div>${esc(p.next)}</div>`:""}${last(p)?`<div>最后互动</div><div>${last(p).d}</div>`:""}</div>
