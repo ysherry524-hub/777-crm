@@ -236,6 +236,8 @@ async function start(){
     const a=document.activeElement; if(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)) return; // 正在输入就先不刷新
     tab(CUR);
   }).subscribe();
+  syncRsvp();
+  sb.channel("rsvp").on("postgres_changes",{event:"*",schema:"public",table:"eb5_invites"},()=>syncRsvp()).subscribe();
 }
 
 // ---------- 计算 ----------
@@ -381,79 +383,39 @@ function renderEv(){
     <label>日期<input type="date" id="ed"></label><label>活动名称<input id="en"></label>
     <label>类型<select id="ek"><option>普通学生活动</option><option>EB-5 专门活动</option></select></label><label>合作方<input id="ep"></label>
     <label>到场人数<input type="number" id="ea"></label><label>进入后台人数<input type="number" id="el"></label>
-    <label class="full">备注<input id="eo"></label></div><button onclick="addEv()">添加</button>
-  <div id="rsvp"></div>`;
-  loadRsvp();
+    <label class="full">备注<input id="eo"></label></div><button onclick="addEv()">添加</button>`;
 }
 // 点数字直接改，改完自动保存
 const evNum=(i,k)=>`<input class="evnum" type="number" min="0" inputmode="numeric" value="${D.events[i][k]}" title="点击修改" onchange="D.events[${i}].${k}=+this.value||0; save()">`;
 function addEv(){ D.events.unshift({d:val("ed"),name:val("en"),kind:val("ek"),partner:val("ep"),att:+val("ea")||0,leads:+val("el")||0,note:val("eo")}); save(); renderEv(); }
 
-// ---------- 邀请函 RSVP：Supabase 表 eb5_events / eb5_invites（访客只能经 eb5_rsvp 函数提交，看不到名单） ----------
-const INV_URL="https://ysherry524-hub.github.io/777-eb5-invitation/";
-const INV_SRC="Email Invitation — 777 EB-5 Jan 23";
-let RS=[], REV=[];
-const invLink=t=>INV_URL+"?token="+t;
-const fmtT=t=>t?new Date(t).toLocaleString("zh-CN",{timeZone:"America/Los_Angeles",month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}):"—";
-async function loadRsvp(){
-  const box=document.getElementById("rsvp"); if(!box) return;
-  const [a,b]=await Promise.all([sb.from("eb5_events").select("*").order("starts_at"),sb.from("eb5_invites").select("*").order("created_at")]);
-  if(a.error||b.error){ box.innerHTML=""; return; }
-  REV=a.data.filter(e=>!e.key.startsWith("test-")); RS=b.data;
-  box.innerHTML=REV.map(ev=>{
-    const r=RS.filter(x=>x.event_key===ev.key), n=f=>r.filter(f).length;
-    const st={attending:'<span class="yes">出席</span>',declined:'<span class="no">不出席</span>',invited:"未回复"};
-    return `<h3>邀请函回复 · ${esc(ev.name)}</h3>
-    <p>已邀请 ${n(x=>x.source===INV_SRC)} · 已发送 ${n(x=>x.sent_at)} · 已打开链接 ${n(x=>x.visited_at)} · 已回复 ${n(x=>x.responded_at)}（出席 ${n(x=>x.status==="attending")} · 不出席 ${n(x=>x.status==="declined")}）
-      · <a class="dl" onclick="rsvpCsv('${ev.key}')">导出邀请链接（CSV）</a></p>
-    <div class="wrap"><table style="min-width:980px"><thead><tr><th>姓名</th><th>邮箱</th><th>电话</th><th>回复</th><th>回复时间</th><th>已发送</th><th>打开链接</th><th>来源</th><th>主表</th><th>专属链接</th></tr></thead><tbody>
-    ${r.map(x=>`<tr><td><b>${esc(x.name)||"—"}</b></td><td>${esc(x.email)||"—"}</td><td>${esc(x.phone)||"—"}</td><td>${st[x.status]}</td><td>${fmtT(x.responded_at)}</td>
-      <td><input type="checkbox" ${x.sent_at?"checked":""} onchange="rsvpSent('${x.token}',this.checked)"></td><td>${fmtT(x.visited_at)}</td>
-      <td>${x.source===INV_SRC?"邮件邀请":"无专属链接"}</td><td>${esc(x.crm_person_id)||"—"}</td>
-      <td><a class="dl" onclick="navigator.clipboard.writeText('${invLink(x.token)}').then(()=>this.textContent='已复制')">复制链接</a></td></tr>`).join("")||`<tr><td colspan="10" class="muted" style="text-align:center;padding:20px">还没有邀请或回复</td></tr>`}
-    </tbody></table></div>
-    <button onclick="rsvpToMain('${ev.key}')">出席者加入主表（${n(x=>x.status==="attending"&&!x.crm_person_id)}）</button>
-    <div class="form" style="max-width:640px;margin-top:14px"><label class="full">添加邀请对象（每行一位：姓名, 邮箱, 电话）<textarea id="ri-${ev.key}" rows="3"></textarea></label></div>
-    <button onclick="rsvpAdd('${ev.key}')">添加邀请</button>`;
-  }).join("");
-}
-async function rsvpAdd(key){
-  const rows=val("ri-"+key).split("\n").map(l=>l.split(/[,，\t]/).map(s=>s.trim())).filter(c=>c[0]||c[1])
-    .map(([name,email,phone])=>({event_key:key,name:name||"",email:(email||"").toLowerCase()||null,phone:phone||null,source:INV_SRC}));
-  if(!rows.length) return;
-  const {error}=await sb.from("eb5_invites").insert(rows);
-  if(error) return alert(/duplicate|unique/i.test(error.message)?"有邮箱已在名单里，请检查后重试（这次一位都没加）":"添加失败："+error.message);
-  loadRsvp();
-}
-async function rsvpSent(token,on){
-  const {error}=await sb.from("eb5_invites").update({sent_at:on?new Date().toISOString():null}).eq("token",token);
-  if(error) alert("保存失败："+error.message);
-  loadRsvp();
-}
-function rsvpCsv(key){
-  const q=v=>'"'+String(v??"").replace(/"/g,'""')+'"';
-  const csv="﻿姓名,邮箱,电话,专属链接,回复\n"+RS.filter(x=>x.event_key===key).map(x=>[x.name,x.email,x.phone,invLink(x.token),x.status].map(q).join(",")).join("\n");
-  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download="777-eb5-invitation-links.csv"; a.click();
-}
-// 出席者：按邮箱找主表里的人，找到就追加一条互动；找不到就新建（不改任何已有字段）
-async function rsvpToMain(key){
-  const ev=REV.find(e=>e.key===key), todo=RS.filter(x=>x.event_key===key&&x.status==="attending"&&!x.crm_person_id);
-  if(!todo.length) return;
+// ---------- 邀请函报名自动进主表（Supabase 表 eb5_invites）----------
+// 只收"欣然出席"。按邮箱找已有的人：找到就追加一条互动，找不到就新建；不改任何已有字段。
+// 先在数据库里"占位"(crm_person_id)，两台电脑同时打开也不会重复添加。
+// ponytail: 占位后电脑突然关掉，这一条会卡在"…"；真遇到了在 Supabase 里把它的 crm_person_id 清空即可
+async function syncRsvp(){
+  const {data:rows,error}=await sb.from("eb5_invites").select("token,name,email,phone,responded_at,event_key").eq("status","attending").is("crm_person_id",null);
+  if(error||!rows?.length) return;
+  const {data:evs}=await sb.from("eb5_events").select("key,name");
   const links=[];
-  for(const x of todo){
+  for(const x of rows){
+    if(x.event_key.startsWith("test-")) continue;
+    const {data:got}=await sb.from("eb5_invites").update({crm_person_id:"…"}).eq("token",x.token).is("crm_person_id",null).select("token");
+    if(!got?.length) continue;
+    const evName=(evs||[]).find(e=>e.key===x.event_key)?.name||"EB-5 活动";
     let p=x.email&&D.people.find(p=>(p.reach||"").toLowerCase().includes(x.email));
     if(!p){
       const id="P"+String(Math.max(0,...D.people.map(p=>+p.id.slice(1)))+1).padStart(3,"0");
-      p={id,name:x.name,reach:["邮箱："+x.email,x.phone&&"电话："+x.phone].filter(Boolean).join(" / "),channel:"EB-5活动",detail:ev.name,school:"",concern:"",funds:"",consult:false,groupSet:"",stage:"初次接触",block:"",next:"",note:""};
+      p={id,name:x.name,reach:["邮箱："+x.email,x.phone&&"电话："+x.phone].filter(Boolean).join(" / "),channel:"EB-5活动",detail:evName,school:"",concern:"",funds:"",consult:false,groupSet:"",stage:"初次接触",block:"",next:"",note:""};
       D.people.push(p);
     }
-    D.acts.push({p:p.id,d:(x.responded_at||"").slice(0,10)||today,a:"报名EB-5活动",x:ev.name});
+    D.acts.push({p:p.id,d:(x.responded_at||"").slice(0,10)||today,a:"报名EB-5活动",x:evName});
     links.push([x.token,p.id]);
   }
-  const {error}=await sb.from("crm").upsert({id:"state",data:D});
-  if(error) return alert("保存失败，请刷新后重试："+error.message);
-  for(const [t,id] of links) await sb.from("eb5_invites").update({crm_person_id:id}).eq("token",t);
-  loadRsvp();
+  if(!links.length) return;
+  const {error:e}=await sb.from("crm").upsert({id:"state",data:D});
+  for(const [t,id] of links) await sb.from("eb5_invites").update({crm_person_id:e?null:id}).eq("token",t);
+  if(!e) tab(CUR);
 }
 
 // ---------- 高频问题：内置问答（写在文件里，发给别人也能看到） ----------
